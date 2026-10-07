@@ -1,5 +1,5 @@
 ---
-- name: Install and start Apache
+- name: Install and configure Apache
   hosts: all
   become: true
 
@@ -14,3 +14,16 @@
         name: httpd
         state: started
         enabled: true
+
+    - name: Start and enable firewalld
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: true
+
+    - name: Allow HTTP through firewall
+      ansible.posix.firewalld:
+        service: http
+        permanent: true
+        immediate: true
+        state: enabled
