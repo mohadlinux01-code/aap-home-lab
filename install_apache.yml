@@ -21,9 +21,13 @@
         state: started
         enabled: true
 
-    - name: Allow HTTP through firewall
+       - name: Allow HTTP through firewall
       ansible.posix.firewalld:
         service: http
         permanent: true
         immediate: true
         state: enabled
+      register: firewall_result
+      failed_when:
+        - firewall_result.failed | default(false)
+        - "'ALREADY_ENABLED' not in (firewall_result.msg | default(''))"
