@@ -1,0 +1,34 @@
+
+---
+- name: Update Linux servers
+  hosts: all
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Update RHEL, AlmaLinux, and Oracle Linux
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+        update_cache: true
+      when: ansible_facts['os_family'] == "RedHat"
+
+    - name: Update Ubuntu and Debian
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: dist
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Check if reboot is required on RHEL-based systems
+      ansible.builtin.command: needs-restarting -r
+      register: reboot_check
+      changed_when: false
+      failed_when: false
+      when: ansible_facts['os_family'] == "RedHat"
+
+    - name: Display reboot check result
+      ansible.builtin.debug:
+        msg: "Reboot check exit code: {{ reboot_check.rc }}"
+      when:
+        - ansible_facts['os_family'] == "RedHat"
+        - reboot_check.rc is defined
